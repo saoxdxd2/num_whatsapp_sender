@@ -15,9 +15,11 @@ def number_generator():
 def send_messages(message, max_messages=100000000):
     options = Options()
 
-    # ✅ Use the same signed-in profile used by setup.py
-    options.add_argument(r'--user-data-dir=C:\Users\sao\AppData\Local\Google\Chrome\User Data')
-    options.add_argument('--profile-directory=Default')
+    # ✅ Use same signed-in profile as setup.py
+    chrome_user_data_dir = r'C:\Users\sao\AppData\Local\Google\Chrome\User Data'
+    profile_name = 'NizarWhatsApp'
+    options.add_argument(f'--user-data-dir={chrome_user_data_dir}')
+    options.add_argument(f'--profile-directory={profile_name}')
 
     from selenium.webdriver.chrome.service import Service
     from webdriver_manager.chrome import ChromeDriverManager
@@ -26,11 +28,9 @@ def send_messages(message, max_messages=100000000):
     driver = webdriver.Chrome(service=service, options=options)
 
     try:
-        # Load WhatsApp Web first to ensure profile is active
         driver.get("https://web.whatsapp.com")
         print("📱 Waiting for WhatsApp Web to load...")
 
-        # Wait for main UI to load (Search box appears)
         WebDriverWait(driver, 60).until(
             EC.presence_of_element_located((By.XPATH, '//div[@title="Search input textbox"]'))
         )
@@ -38,7 +38,7 @@ def send_messages(message, max_messages=100000000):
 
         count = 0
         for num in number_generator():
-            international_num = "212" + num[1:]  # Moroccan format
+            international_num = "212" + num[1:]  # Convert to Moroccan international format
             url = f"https://web.whatsapp.com/send?phone={international_num}&text={message}"
             driver.get(url)
             print(f"💬 Opening chat with +{international_num}...")
@@ -50,7 +50,6 @@ def send_messages(message, max_messages=100000000):
                 time.sleep(2)
                 input_box.send_keys(Keys.ENTER)
                 print(f"✅ Message sent to +{international_num}")
-
             except Exception as e:
                 print(f"❌ Failed to send to +{international_num}: {e}")
 
