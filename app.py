@@ -12,7 +12,7 @@ def number_generator():
         yield f"06{i:08d}"
 
 # Send messages to WhatsApp numbers
-def send_messages(message, max_messages=3):
+def send_messages(message, max_messages=100000000):
     options = Options()
     
     # Use existing user profile
