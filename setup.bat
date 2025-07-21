@@ -15,6 +15,10 @@ choco -v >nul 2>&1
 if %errorLevel% neq 0 (
     echo Installing Chocolatey...
     powershell -NoProfile -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy Bypass -Scope Process -Force; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"
+
+    :: Now run refreshenv to reload env vars
+    echo Refreshing environment variables...
+    call "%ALLUSERSPROFILE%\chocolatey\bin\refreshenv.cmd"
 ) else (
     echo Chocolatey already installed.
 )
