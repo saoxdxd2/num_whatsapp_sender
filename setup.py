@@ -1,6 +1,8 @@
 import os
 import subprocess
 import sys
+import time
+import shutil
 
 # Required Python packages
 REQUIRED_PACKAGES = [
@@ -23,13 +25,20 @@ def create_chrome_profile_folder():
 
 def launch_chrome_with_profile(profile_path):
     chrome_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-    if not os.path.exists(chrome_path):
+
+    if not os.path.isfile(chrome_path):
         print("Chrome is not installed at the expected path.")
         return
 
     print("Launching Chrome with AutomationProfile...")
     try:
-        subprocess.Popen([chrome_path, f'--user-data-dir={profile_path}'])
+        subprocess.Popen([
+            chrome_path,
+            f'--user-data-dir={profile_path}',
+            '--no-first-run',
+            '--no-default-browser-check'
+        ])
+        print("Chrome launched. Please log into your Google account in the opened window.")
     except Exception as e:
         print(f"Failed to launch Chrome: {e}")
 
