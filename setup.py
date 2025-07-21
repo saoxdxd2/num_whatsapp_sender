@@ -13,7 +13,7 @@ def install_packages():
     subprocess.check_call([sys.executable, "-m", "pip", "install", *REQUIRED_PACKAGES])
 
 def get_existing_chrome_profile_path():
-    # Using the 'Default' profile which is already signed-in
+    # Using the 'Default' profile (already logged in)
     profile_path = os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\User Data\Default")
     
     if os.path.exists(profile_path):
