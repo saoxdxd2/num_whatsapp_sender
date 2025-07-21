@@ -1,57 +1,46 @@
-@echo off
-:: Check if script is running elevated
-if "%1"=="--elevated" goto elevated
+import os
+import subprocess
+import sys
 
-:: Not elevated - relaunch as admin with --elevated argument and keep window open
-echo Requesting administrative privileges...
-powershell -Command "Start-Process -FilePath 'cmd.exe' -ArgumentList '/k \"%~f0\" --elevated' -Verb RunAs"
-exit /b
+# Required Python packages
+REQUIRED_PACKAGES = [
+    'selenium',
+    'webdriver-manager'
+]
 
-:elevated
-echo Running with administrative privileges...
+def install_packages():
+    print("Installing required packages...")
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", *REQUIRED_PACKAGES])
+    except subprocess.CalledProcessError as e:
+        print(f"Error installing packages: {e}")
+        sys.exit(1)
 
-:: Check if Chocolatey is installed
-choco -v >nul 2>&1
-if %errorLevel% neq 0 (
-    echo Installing Chocolatey...
-    powershell -NoProfile -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy Bypass -Scope Process -Force; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"
+def create_chrome_profile_folder():
+    profile_path = r"C:\Users\sao\AppData\Local\Google\Chrome\User Data\AutomationProfile"
+    if not os.path.exists(profile_path):
+        os.makedirs(profile_path)
+        print(f"Created profile folder: {profile_path}")
+    else:
+        print(f"Profile folder already exists: {profile_path}")
+    return profile_path
 
-    :: Now run refreshenv to reload env vars
-    echo Refreshing environment variables...
-    call "%ALLUSERSPROFILE%\chocolatey\bin\refreshenv.cmd"
-) else (
-    echo Chocolatey already installed.
-)
+def launch_chrome_with_profile(profile_path):
+    chrome_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+    if not os.path.exists(chrome_path):
+        print("Chrome is not installed at the expected path.")
+        return
 
-:: Check if Python is installed
-python --version >nul 2>&1
-if %errorLevel% neq 0 (
-    echo Python not detected. Installing Python...
-    choco install python -y --ignore-checksums
-) else (
-    echo Python is already installed.
-)
+    command = f'"{chrome_path}" --user-data-dir="{profile_path}"'
+    print("Launching Chrome with AutomationProfile...")
+    # Use list for subprocess without shell to avoid shell injection risks
+    subprocess.Popen([chrome_path, f'--user-data-dir={profile_path}'])
 
-:: Check if Git is installed
-git --version >nul 2>&1
-if %errorLevel% neq 0 (
-    echo Git not detected. Installing Git...
-    choco install git -y --ignore-checksums
-) else (
-    echo Git is already installed.
-)
+def main():
+    install_packages()
+    profile_path = create_chrome_profile_folder()
+    launch_chrome_with_profile(profile_path)
+    print("\nSetup complete! You can now run your automation script.")
 
-echo Waiting for installations to finish...
-timeout /t 5 /nobreak >nul
-
-:: Change directory to the batch file's location before running setup.py
-cd /d "%~dp0"
-
-echo Running Python setup.py script...
-python setup.py
-
-echo.
-echo Setup complete. Press any key to exit.
-pause >nul
-
-exit /b
+if __name__ == "__main__":
+    main()
