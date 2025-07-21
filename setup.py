@@ -1,52 +1,28 @@
-import os
-import subprocess
-import sys
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+import time
 
-# Required Python packages
-REQUIRED_PACKAGES = [
-    'selenium',
-    'webdriver-manager'
-]
+# ✅ Updated Chrome user profile directory
+chrome_user_data_dir = r'C:\Users\sao\AppData\Local\Google\Chrome\User Data'
+profile_name = 'NizarWhatsApp'  # custom profile name to isolate from Default
 
-def install_packages():
-    print("Installing required packages...")
-    subprocess.check_call([sys.executable, "-m", "pip", "install", *REQUIRED_PACKAGES])
+options = Options()
+options.add_argument(f'--user-data-dir={chrome_user_data_dir}')
+options.add_argument(f'--profile-directory={profile_name}')
 
-def get_existing_chrome_profile_path():
-    # Using the 'Default' profile (already logged in)
-    profile_path = os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\User Data\Default")
-    
-    if os.path.exists(profile_path):
-        print(f"Using existing signed-in Chrome profile: {profile_path}")
-        return profile_path
-    else:
-        print("Signed-in Chrome profile not found at expected location.")
-        return None
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 
-def launch_chrome_with_profile(profile_path):
-    chrome_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-    if not os.path.exists(chrome_path):
-        print("Chrome is not installed at the expected path.")
-        return
+service = Service(ChromeDriverManager().install())
+driver = webdriver.Chrome(service=service, options=options)
 
-    print("Launching Chrome with signed-in profile...")
-    try:
-        subprocess.Popen([
-            chrome_path,
-            f'--user-data-dir={os.path.dirname(profile_path)}',
-            f'--profile-directory={os.path.basename(profile_path)}'
-        ])
-    except Exception as e:
-        print(f"Failed to launch Chrome: {e}")
+try:
+    print("🌐 Opening WhatsApp Web...")
+    driver.get("https://web.whatsapp.com")
 
-def main():
-    install_packages()
-    profile_path = get_existing_chrome_profile_path()
-    if profile_path:
-        launch_chrome_with_profile(profile_path)
-    else:
-        print("Profile not available. Please sign in to Chrome manually first.")
-    print("\nSetup complete! You can now run your automation script.")
+    print("⌛ Please scan the QR code (if needed) and wait...")
+    input("✅ Press Enter after WhatsApp Web is fully loaded...")
 
-if __name__ == "__main__":
-    main()
+finally:
+    driver.quit()
