@@ -2,9 +2,9 @@
 :: Check if script is running elevated
 if "%1"=="--elevated" goto elevated
 
-:: Not elevated - relaunch as admin with --elevated argument
+:: Not elevated - relaunch as admin with --elevated argument and keep window open
 echo Requesting administrative privileges...
-powershell -Command "Start-Process -FilePath '%~f0' -ArgumentList '--elevated' -Verb RunAs"
+powershell -Command "Start-Process -FilePath 'cmd.exe' -ArgumentList '/k \"%~f0\" --elevated' -Verb RunAs"
 exit /b
 
 :elevated
@@ -14,27 +14,40 @@ echo Running with administrative privileges...
 choco -v >nul 2>&1
 if %errorLevel% neq 0 (
     echo Installing Chocolatey...
-    powershell -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command ^
-    "Set-ExecutionPolicy Bypass -Scope Process -Force; ^
-    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; ^
-    iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy Bypass -Scope Process -Force; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"
 ) else (
     echo Chocolatey already installed.
 )
 
-:: Refresh environment variables for this session (requires refreshenv.exe)
-refreshenv >nul 2>&1
+:: Check if Python is installed
+python --version >nul 2>&1
+if %errorLevel% neq 0 (
+    echo Python not detected. Installing Python...
+    choco install python -y --ignore-checksums
+) else (
+    echo Python is already installed.
+)
 
-:: Install Git and Python using Chocolatey
-choco install git python -y --ignore-checksums
+:: Check if Git is installed
+git --version >nul 2>&1
+if %errorLevel% neq 0 (
+    echo Git not detected. Installing Git...
+    choco install git -y --ignore-checksums
+) else (
+    echo Git is already installed.
+)
 
-:: Wait for install to finish
-timeout /t 5
+echo Waiting for installations to finish...
+timeout /t 5 /nobreak >nul
 
-:: Run the Python setup script
+:: Change directory to the batch file's location before running setup.py
+cd /d "%~dp0"
+
 echo Running Python setup.py script...
 python setup.py
 
 echo.
 echo Setup complete. Press any key to exit.
 pause >nul
+
+exit /b
