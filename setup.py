@@ -10,7 +10,11 @@ REQUIRED_PACKAGES = [
 
 def install_packages():
     print("Installing required packages...")
-    subprocess.check_call([sys.executable, "-m", "pip", "install", *REQUIRED_PACKAGES])
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", *REQUIRED_PACKAGES])
+    except subprocess.CalledProcessError as e:
+        print(f"Error installing packages: {e}")
+        sys.exit(1)
 
 def create_chrome_profile_folder():
     profile_path = r"C:\Users\sao\AppData\Local\Google\Chrome\User Data\AutomationProfile"
@@ -29,7 +33,8 @@ def launch_chrome_with_profile(profile_path):
 
     command = f'"{chrome_path}" --user-data-dir="{profile_path}"'
     print("Launching Chrome with AutomationProfile...")
-    subprocess.Popen(command, shell=True)
+    # Use list for subprocess without shell to avoid shell injection risks
+    subprocess.Popen([chrome_path, f'--user-data-dir={profile_path}'])
 
 def main():
     install_packages()
