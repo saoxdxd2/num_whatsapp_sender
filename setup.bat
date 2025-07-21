@@ -3,9 +3,11 @@
 net session >nul 2>&1
 if %errorLevel% neq 0 (
     echo Requesting administrative privileges...
-    powershell -Command "Start-Process '%~f0' -Verb RunAs"
+    powershell -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
     exit /b
 )
+
+:: Now running with admin rights, continue...
 
 echo Running with administrative privileges...
 
@@ -21,7 +23,7 @@ if %errorLevel% neq 0 (
     echo Chocolatey already installed.
 )
 
-:: Refresh environment variables to recognize choco command
+:: Refresh environment variables
 refreshenv >nul
 
 :: Install Git and Python using Chocolatey
@@ -34,4 +36,6 @@ timeout /t 5
 echo Running Python setup.py script...
 python setup.py
 
-pause
+echo.
+echo Setup complete. Press any key to exit.
+pause >nul
