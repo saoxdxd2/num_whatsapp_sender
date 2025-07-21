@@ -4,11 +4,16 @@ net session >nul 2>&1
 if %errorLevel% neq 0 (
     echo Requesting administrative privileges...
     powershell -Command ^
-        "Start-Process cmd -ArgumentList '/k \"%~f0\"' -Verb RunAs"
+        "Start-Process cmd -ArgumentList '/c \"set ADMIN_ELEVATED=1 && call \"%~f0\"\"' -Verb RunAs"
     exit /b
 )
 
-:: Running with admin privileges here
+:: Prevent infinite re-entry
+if "%ADMIN_ELEVATED%"=="1" (
+    set ADMIN_ELEVATED=
+)
+
+:: Running with administrative privileges here
 echo Running with administrative privileges...
 
 :: Check if Chocolatey is installed
@@ -39,4 +44,3 @@ python setup.py
 echo.
 echo Setup complete. Press any key to exit.
 pause >nul
-
