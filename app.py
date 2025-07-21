@@ -14,13 +14,10 @@ def number_generator():
 # Send messages to WhatsApp numbers
 def send_messages(message, max_messages=100000000):
     options = Options()
-    
-    # Use existing user profile
+
+    # ✅ Use the same signed-in profile used by setup.py
     options.add_argument(r'--user-data-dir=C:\Users\sao\AppData\Local\Google\Chrome\User Data')
-    options.add_argument('--profile-directory=AutomationProfile')  # Use correct profile name
-    options.add_argument('--remote-debugging-port=9222')
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-dev-shm-usage')
+    options.add_argument('--profile-directory=Default')
 
     from selenium.webdriver.chrome.service import Service
     from webdriver_manager.chrome import ChromeDriverManager
@@ -33,7 +30,7 @@ def send_messages(message, max_messages=100000000):
         driver.get("https://web.whatsapp.com")
         print("📱 Waiting for WhatsApp Web to load...")
 
-        # Wait for main UI to load
+        # Wait for main UI to load (Search box appears)
         WebDriverWait(driver, 60).until(
             EC.presence_of_element_located((By.XPATH, '//div[@title="Search input textbox"]'))
         )
@@ -47,7 +44,6 @@ def send_messages(message, max_messages=100000000):
             print(f"💬 Opening chat with +{international_num}...")
 
             try:
-                # Wait for chat input to appear
                 input_box = WebDriverWait(driver, 30).until(
                     EC.presence_of_element_located((By.XPATH, '//div[@contenteditable="true" and @data-tab="10"]'))
                 )
@@ -71,4 +67,4 @@ def send_messages(message, max_messages=100000000):
 if __name__ == "__main__":
     print("⚠️ Make sure Chrome is fully closed before running this script.")
     msg = "Hello from your assistant Nizar 🚀"
-    send_messages(msg, max_messages=100000000)
+    send_messages(msg)
