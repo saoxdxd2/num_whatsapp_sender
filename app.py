@@ -4,25 +4,22 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+import os
 import time
 
-# Generator for phone numbers
 def number_generator():
-    for i in range(100_000_000):  # from 0600000000 to 0699999999
+    for i in range(100_000_000):  # 0600000000 to 0699999999
         yield f"06{i:08d}"
 
-# Send messages to WhatsApp numbers
-def send_messages(message, max_messages=100000000):
-    options = Options()
+def send_messages(message, max_messages=3):
+    chrome_user_data_dir = os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\User Data")
+    profile_name = "AutomationProfile"
 
-    # ✅ Use same signed-in profile as setup.py
-    chrome_user_data_dir = r'C:\Users\sao\AppData\Local\Google\Chrome\User Data'
-    profile_name = 'NizarWhatsApp'
+    options = Options()
     options.add_argument(f'--user-data-dir={chrome_user_data_dir}')
     options.add_argument(f'--profile-directory={profile_name}')
-
-    from selenium.webdriver.chrome.service import Service
-    from webdriver_manager.chrome import ChromeDriverManager
 
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
@@ -38,7 +35,7 @@ def send_messages(message, max_messages=100000000):
 
         count = 0
         for num in number_generator():
-            international_num = "212" + num[1:]  # Convert to Moroccan international format
+            international_num = "212" + num[1:]  # Moroccan format
             url = f"https://web.whatsapp.com/send?phone={international_num}&text={message}"
             driver.get(url)
             print(f"💬 Opening chat with +{international_num}...")
@@ -59,11 +56,9 @@ def send_messages(message, max_messages=100000000):
                 break
 
             time.sleep(5)
-
     finally:
         driver.quit()
 
 if __name__ == "__main__":
     print("⚠️ Make sure Chrome is fully closed before running this script.")
-    msg = "Hello from your assistant Nizar 🚀"
-    send_messages(msg)
+    send_messages("Hello from your assistant Nizar 🚀", max_messages=3)
