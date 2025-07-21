@@ -1,19 +1,13 @@
 @echo off
-:: Check for admin rights
-net session >nul 2>&1
-if %errorLevel% neq 0 (
-    echo Requesting administrative privileges...
-    powershell -Command ^
-        "Start-Process cmd -ArgumentList '/c \"set ADMIN_ELEVATED=1 && call \"%~f0\"\"' -Verb RunAs"
-    exit /b
-)
+:: Check if script is running elevated
+if "%1"=="--elevated" goto elevated
 
-:: Prevent infinite re-entry
-if "%ADMIN_ELEVATED%"=="1" (
-    set ADMIN_ELEVATED=
-)
+:: Not elevated - relaunch as admin with --elevated argument
+echo Requesting administrative privileges...
+powershell -Command "Start-Process -FilePath '%~f0' -ArgumentList '--elevated' -Verb RunAs"
+exit /b
 
-:: Running with administrative privileges here
+:elevated
 echo Running with administrative privileges...
 
 :: Check if Chocolatey is installed
@@ -28,8 +22,8 @@ if %errorLevel% neq 0 (
     echo Chocolatey already installed.
 )
 
-:: Refresh environment variables
-refreshenv >nul
+:: Refresh environment variables for this session (requires refreshenv.exe)
+refreshenv >nul 2>&1
 
 :: Install Git and Python using Chocolatey
 choco install git python -y --ignore-checksums
