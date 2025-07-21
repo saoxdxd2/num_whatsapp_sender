@@ -1,24 +1,23 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
+import subprocess
 import os
 
-# Use the custom AutomationProfile folder inside Chrome User Data
-chrome_user_data_dir = os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\User Data")
-profile_name = "AutomationProfile"
+def main():
+    chrome_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+    user_data_dir = os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\User Data")
+    profile_name = "AutomationProfile"
 
-options = Options()
-options.add_argument(f'--user-data-dir={chrome_user_data_dir}')
-options.add_argument(f'--profile-directory={profile_name}')
+    try:
+        subprocess.Popen([
+            chrome_path,
+            f"--user-data-dir={user_data_dir}",
+            f"--profile-directory={profile_name}"
+        ])
+        print("🌐 Launched Chrome for manual login.")
+        print("⌛ Please log into WhatsApp Web and Google in this window.")
+        print("After finishing, close Chrome completely.")
+        input("✅ Press Enter here after you have logged in and closed Chrome...")
+    except Exception as e:
+        print(f"❌ Failed to launch Chrome: {e}")
 
-service = Service(ChromeDriverManager().install())
-driver = webdriver.Chrome(service=service, options=options)
-
-try:
-    print("🌐 Opening WhatsApp Web...")
-    driver.get("https://web.whatsapp.com")
-    print("⌛ Please scan the QR code and log in if needed.")
-    input("✅ Press Enter after you have fully logged in and WhatsApp Web is ready...")
-finally:
-    driver.quit()
+if __name__ == "__main__":
+    main()
