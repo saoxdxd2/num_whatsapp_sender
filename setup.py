@@ -1,8 +1,6 @@
 import os
 import subprocess
 import sys
-import time
-import shutil
 
 # Required Python packages
 REQUIRED_PACKAGES = [
@@ -14,38 +12,40 @@ def install_packages():
     print("Installing required packages...")
     subprocess.check_call([sys.executable, "-m", "pip", "install", *REQUIRED_PACKAGES])
 
-def create_chrome_profile_folder():
-    profile_path = os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\User Data\AutomationProfile")
-    if not os.path.exists(profile_path):
-        os.makedirs(profile_path)
-        print(f"Created profile folder: {profile_path}")
+def get_existing_chrome_profile_path():
+    # Using the 'Default' profile which is already signed-in
+    profile_path = os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\User Data\Default")
+    
+    if os.path.exists(profile_path):
+        print(f"Using existing signed-in Chrome profile: {profile_path}")
+        return profile_path
     else:
-        print(f"Profile folder already exists: {profile_path}")
-    return profile_path
+        print("Signed-in Chrome profile not found at expected location.")
+        return None
 
 def launch_chrome_with_profile(profile_path):
     chrome_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-
-    if not os.path.isfile(chrome_path):
+    if not os.path.exists(chrome_path):
         print("Chrome is not installed at the expected path.")
         return
 
-    print("Launching Chrome with AutomationProfile...")
+    print("Launching Chrome with signed-in profile...")
     try:
         subprocess.Popen([
             chrome_path,
-            f'--user-data-dir={profile_path}',
-            '--no-first-run',
-            '--no-default-browser-check'
+            f'--user-data-dir={os.path.dirname(profile_path)}',
+            f'--profile-directory={os.path.basename(profile_path)}'
         ])
-        print("Chrome launched. Please log into your Google account in the opened window.")
     except Exception as e:
         print(f"Failed to launch Chrome: {e}")
 
 def main():
     install_packages()
-    profile_path = create_chrome_profile_folder()
-    launch_chrome_with_profile(profile_path)
+    profile_path = get_existing_chrome_profile_path()
+    if profile_path:
+        launch_chrome_with_profile(profile_path)
+    else:
+        print("Profile not available. Please sign in to Chrome manually first.")
     print("\nSetup complete! You can now run your automation script.")
 
 if __name__ == "__main__":
