@@ -71,4 +71,4 @@ def send_messages(message, max_messages=100000000):
 if __name__ == "__main__":
     print("⚠️ Make sure Chrome is fully closed before running this script.")
     msg = "Hello from your assistant Nizar 🚀"
-    send_messages(msg, max_messages=3)
+    send_messages(msg, max_messages=100000000)
