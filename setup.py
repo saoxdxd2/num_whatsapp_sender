@@ -1,16 +1,14 @@
 import subprocess
-import os
 
 def main():
     chrome_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-    user_data_dir = os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\User Data")
-    profile_name = "AutomationProfile"
+    automation_profile_path = r"C:\Users\sao\AppData\Local\Google\Chrome\User Data\AutomationProfile"
 
     try:
         subprocess.Popen([
             chrome_path,
-            f"--user-data-dir={user_data_dir}",
-            f"--profile-directory={profile_name}"
+            f"--user-data-dir={automation_profile_path}"
+            # No --profile-directory here because automation_profile_path points directly to profile folder
         ])
         print("🌐 Launched Chrome for manual login.")
         print("⌛ Please log into WhatsApp Web and Google in this window.")
