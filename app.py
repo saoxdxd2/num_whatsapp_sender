@@ -13,7 +13,7 @@ def number_generator():
     for i in range(100_000_000):  # from 0600000000 to 0699999999
         yield f"06{i:08d}"
 
-def send_messages(message, max_messages=3):
+def send_messages(message, max_messages=100000000):
     options = Options()
     options.add_argument(r"--user-data-dir=C:\Users\sao\AppData\Local\Google\Chrome\User Data\AutomationProfile")
 
@@ -78,5 +78,5 @@ def send_messages(message, max_messages=3):
 
 if __name__ == "__main__":
     print("✅ Make sure Chrome is fully closed before running this script.")
-    msg = "Hello from your assistant Nizar 🚀"
-    send_messages(msg, max_messages=3)
+    msg = "Hello from your assistant"
+    send_messages(msg, max_messages=100000000)
