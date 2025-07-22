@@ -5,63 +5,78 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from webdriver_manager.chrome import ChromeDriverManager
-import os
 import time
 
 def number_generator():
-    for i in range(100_000_000):
+    for i in range(100_000_000):  # from 0600000000 to 0699999999
         yield f"06{i:08d}"
 
-def send_messages(message, max_messages=100000000):
-    # Fix here: No quotes around User Data
-    chrome_user_data_dir = os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\User Data")
-    profile_name = "AutomationProfile"
-
+def send_messages(message, max_messages=3):
     options = Options()
-    options.add_argument(f"--user-data-dir={chrome_user_data_dir}")
-    options.add_argument(f"--profile-directory={profile_name}")
-    options.add_argument("--no-first-run")  
-    options.add_argument("--disable-extensions")  
+    options.add_argument(r"--user-data-dir=C:\Users\sao\AppData\Local\Google\Chrome\User Data\AutomationProfile")
 
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
 
     try:
-        driver.get("https://web.whatsapp.com")
-        print("Waiting for WhatsApp Web to load...")
-
-        WebDriverWait(driver, 60).until(
-            EC.presence_of_element_located((By.XPATH, '//div[@title="Search input textbox"]'))
-        )
-        print("WhatsApp Web loaded.")
-
         count = 0
         for num in number_generator():
             international_num = "212" + num[1:]
             url = f"https://web.whatsapp.com/send?phone={international_num}&text={message}"
             driver.get(url)
-            print(f"Opening chat with +{international_num}...")
 
+            time.sleep(3)  # Give time for page and popup to load
+
+            # Try to find and click invalid number popup OK button
+            try:
+                # Try multiple possible selectors for the OK button of alert dialog
+                possible_ok_buttons = [
+                    '//div[@role="alertdialog"]//button[contains(., "OK")]',
+                    '//div[@role="alertdialog"]//span[text()="OK"]',
+                    '//div[contains(@class,"_2Nr6U")]//span[text()="OK"]',
+                    '//div[contains(@class,"_2Nr6U")]//button[contains(., "OK")]',
+                ]
+                ok_clicked = False
+                for xpath in possible_ok_buttons:
+                    try:
+                        ok_button = WebDriverWait(driver, 2).until(
+                            EC.element_to_be_clickable((By.XPATH, xpath))
+                        )
+                        ok_button.click()
+                        ok_clicked = True
+                        # print("⚠️ Invalid number popup detected and OK clicked.")  # Debug, can comment out
+                        break
+                    except TimeoutException:
+                        continue
+                if ok_clicked:
+                    continue  # skip this number and go to next
+            except Exception:
+                pass  # silently ignore if no popup or error clicking
+
+            # If no popup, continue to send message
             try:
                 input_box = WebDriverWait(driver, 30).until(
                     EC.presence_of_element_located((By.XPATH, '//div[@contenteditable="true" and @data-tab="10"]'))
                 )
                 time.sleep(2)
                 input_box.send_keys(Keys.ENTER)
-                print(f"Message sent to +{international_num}")
-            except Exception as e:
-                print(f"Failed to send message to +{international_num}: {e}")
+                print(f"✅ Message sent to +{international_num}")
+            except Exception:
+                # silently skip send errors
+                pass
 
             count += 1
             if count >= max_messages:
-                print("Reached max message limit.")
                 break
 
             time.sleep(5)
+
     finally:
         driver.quit()
 
 if __name__ == "__main__":
-    print("Make sure Chrome is fully closed before running this script!")
-    send_messages("Hello from your assistant Nizar 🚀", max_messages=100000000)
+    print("✅ Make sure Chrome is fully closed before running this script.")
+    msg = "Hello from your assistant Nizar 🚀"
+    send_messages(msg, max_messages=3)
